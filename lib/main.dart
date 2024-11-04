@@ -1,31 +1,60 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:goojara/Play.dart';
+import 'package:goojara/firebase_options.dart';
 import 'package:goojara/movie.dart';
+import 'package:goojara/services/services.dart';
 
-void main() {
+Future<void> main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: MyApp(),
   ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late Future<List> nowShowing;
+  late Future<List> upComing;
+  late Future<List> popularMovies;
+  late Future<List> searchMovies;
+
+  @override
+  void initState() {
+    nowShowing = APIservices().getNowShowing();
+    upComing = APIservices().getUpComing();
+    popularMovies = APIservices().getPopular();
+    searchMovies = APIservices().getPopular();
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Row(
+        title: const Row(
           children: [
-            const Text(
+            Text(
               "GOOJARA.to",
               style: TextStyle(color: Colors.white),
             ),
-            const Spacer(), // Add some space between text and search bar
+            Spacer(), // Add some space between text and search bar
             SizedBox(
               height: 35,
               width: 150, // Reduce height of the TextField
-              child: const TextField(
+              child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search',
                   hintStyle: TextStyle(color: Colors.black),
@@ -48,201 +77,185 @@ class MyApp extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(4.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "Browse",
-                    style: TextStyle(color: Colors.black),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    "Movies",
-                    style: TextStyle(color: Colors.black),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    "Series",
-                    style: TextStyle(color: Colors.black),
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(color: Colors.grey),
-
-          Row(
-            //other movies
-            children: [
-              Expanded(
-                flex: 1,
-                child: GestureDetector(
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.white,
-                          ),
-                          borderRadius: BorderRadius.circular(500)),
-                      child: Image.network(
-                          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXWhR_s9i_DWP8y0Xnyef4iO8aEjmf4dicxw&s',
-                          fit: BoxFit.fill,
-                          height: 150),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const MoviePage()));
-                    }),
-              ),
-              Expanded(
-                flex: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white,
-                      ),
-                      borderRadius: BorderRadius.circular(500)),
-                  child: Image.network(
-                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEFovDMtyL48glDa4b4JoIEW137rOrE18EYQ&s',
-                      fit: BoxFit.fill,
-                      height: 150),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.white,
-                    ),
-                    borderRadius: BorderRadius.circular(500),
-                  ),
-                  child: Image.network(
-                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQA00WlnIbOk-nye1j87skCGOodsuXLcs3pw&s',
-                      fit: BoxFit.fill,
-                      height: 150),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-
-          //second row
-          Row(
-            //other movies
-            children: [
-              Expanded(
-                flex: 1,
-                child: Image.network(
-                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXWhR_s9i_DWP8y0Xnyef4iO8aEjmf4dicxw&s',
-                    fit: BoxFit.fill,
-                    height: 150),
-              ),
-              Expanded(
-                flex: 1,
-                child: Image.network(
-                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEFovDMtyL48glDa4b4JoIEW137rOrE18EYQ&s',
-                    fit: BoxFit.fill,
-                    height: 150),
-              ),
-              Expanded(
-                flex: 1,
-                child: Image.network(
-                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQA00WlnIbOk-nye1j87skCGOodsuXLcs3pw&s',
-                    fit: BoxFit.fill,
-                    height: 150),
-              ),
-            ],
-          ),
-          const Divider(color: Colors.grey),
-          const SizedBox(
-            height: 5,
-          ),
-          const Divider(
-            color: Colors.grey,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              TextButton(
-                style: const ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(Colors.blue)),
-                onPressed: () {},
-                child: const Text(
-                  'Recent',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const Text("Popular"),
-              const Text("Genre"),
-              const Text("Year"),
-              const Text("A-Z"),
-            ],
-          ),
-          const Divider(
-            color: Colors.grey,
-          ),
-          Row(
-            children: [
-              Icon(
-                Icons.local_movies,
-                color: Colors.amber.shade800,
-              ),
-              const Text("You Gotta Believe"),
-              const Icon(
-                Icons.fiber_dvr_rounded,
-                color: Colors.blue,
-              ),
-            ],
-          ),
-          const Divider(
-            color: Colors.grey,
-          ),
-          Row(
-            children: [
-              Icon(
-                Icons.local_movies,
-                color: Colors.amber.shade800,
-              ),
-              const Text("Hounds of War"),
-              const Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(4.0),
+              child: Row(
                 children: [
-                  Icon(
-                    Icons.fiber_dvr_rounded,
-                    color: Colors.blue,
+                  Expanded(
+                    child: Text(
+                      "Browse",
+                      style: TextStyle(color: Colors.black),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "Movies",
+                      style: TextStyle(color: Colors.black),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "Series",
+                      style: TextStyle(color: Colors.black),
+                      textAlign: TextAlign.end,
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+            ),
+            const Divider(color: Colors.grey),
+            FutureBuilder(
+              future: nowShowing,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final movies = snapshot.data!;
 
-class TextBox extends StatelessWidget {
-  const TextBox({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.centerLeft,
-      color: Colors.white,
-      child: const TextField(
-        decoration:
-            InputDecoration(border: InputBorder.none, hintText: 'Search'),
+                  return GridView.builder(
+                    shrinkWrap: true, // Prevent overflow
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Disable GridView scroll
+                    itemCount: 6,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 2.0, // Reduce vertical spacing
+                      crossAxisSpacing: 2.0, // Reduce horizontal spacing
+                      childAspectRatio: 0.7, // Control height/width ratio
+                    ),
+                    itemBuilder: (context, index) {
+                      final movie = movies[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MoviePage(
+                                      movieID: movie.movieID,
+                                    )),
+                          );
+                        },
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                image: DecorationImage(
+                                  fit: BoxFit
+                                      .cover, // Ensures image fits correctly
+                                  image: NetworkImage(
+                                      "https://image.tmdb.org/t/p/original/${movie.posterPath}"),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 15,
+                              left: 0,
+                              right: 0,
+                              child: Container(
+                                color: Colors.blue[100],
+                                child: Text(
+                                  movie.title,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const Center(child: CircularProgressIndicator());
+              },
+            ),
+            const SizedBox(height: 5),
+            const Divider(color: Colors.grey),
+            const SizedBox(height: 5),
+            const Divider(color: Colors.grey),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  style: const ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(Colors.blue),
+                  ),
+                  onPressed: () {},
+                  child: const Text('Recent',
+                      style: TextStyle(color: Colors.white)),
+                ),
+                const Text("Popular"),
+                const Text("Genre"),
+                const Text("Year"),
+                const Text("A-Z"),
+              ],
+            ),
+            const Divider(color: Colors.grey),
+            FutureBuilder(
+              future: popularMovies,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final movies = snapshot.data!;
+                  return ListView.builder(
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Disable scrolling
+                    shrinkWrap: true, // Prevent overflow
+                    itemCount: 5,
+                    itemBuilder: (context, index) {
+                      final movie = movies[index];
+                      return Row(
+                        children: [
+                          Icon(Icons.local_movies,
+                              color: Colors.amber.shade800),
+                          Text(movie.title),
+                          const Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Icon(Icons.fiber_dvr_rounded, color: Colors.blue),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+                return const Center(child: CircularProgressIndicator());
+              },
+            ),
+            const Divider(color: Colors.grey),
+            Container(
+              color: Colors.blue,
+              child: const Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "BASK Group",
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(Icons.fiber_dvr_rounded, color: Colors.white),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

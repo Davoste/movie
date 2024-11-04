@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "581163551012",
+    "project_id": "goojara-61cc8",
+    "storage_bucket": "goojara-61cc8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:581163551012:android:f127e4d7e20d3dd8cecbb1",
+        "android_client_info": {
+          "package_name": "com.example.goojara"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4IWd72Jhb3ZwjajPhGmDYwN6Uv_nV_YM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
