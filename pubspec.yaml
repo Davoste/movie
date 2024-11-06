@@ -49,6 +49,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
   flutter_launcher_icons: "^0.14.1"
+  google_mobile_ads: ^5.2.0
 
 flutter_launcher_icons:
   android: true

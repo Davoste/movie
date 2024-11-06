@@ -1,12 +1,21 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:goojara/Play.dart';
+import 'package:goojara/ads.dart';
 import 'package:goojara/firebase_options.dart';
 import 'package:goojara/movie.dart';
 import 'package:goojara/services/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:ui_web' as ui;
+import 'package:flutter/material.dart';
+import 'dart:html' as html;
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -28,6 +37,10 @@ class _MyAppState extends State<MyApp> {
   late Future<List> upComing;
   late Future<List> popularMovies;
   late Future<List> searchMovies;
+  late BannerAd _bannerAd;
+  bool isBannerAdReady = false;
+  late InterstitialAd _interstitialAd;
+  bool isInterstitialAdReady = false;
 
   @override
   void initState() {
@@ -35,8 +48,87 @@ class _MyAppState extends State<MyApp> {
     upComing = APIservices().getUpComing();
     popularMovies = APIservices().getPopular();
     searchMovies = APIservices().getPopular();
+    _bannerAd = BannerAd(
+      size: AdSize.banner,
+      adUnitId: 'ca-app-pub-6014490259749638/6339796268',
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(
+            () {
+              isBannerAdReady = true;
+            },
+          );
+        },
+        onAdFailedToLoad: (ad, error) {
+          isBannerAdReady = false;
+        },
+      ),
+      request: AdRequest(),
+    );
+    _bannerAd.load();
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-6014490259749638/4643571214',
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          setState(
+            () {
+              _interstitialAd = ad;
+              isInterstitialAdReady = true;
+            },
+          );
+        },
+        onAdFailedToLoad: (error) {
+          isInterstitialAdReady = false;
+        },
+      ),
+      request: AdRequest(),
+    );
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd.dispose();
+    if (isBannerAdReady) {
+      _interstitialAd.dispose();
+    }
+  }
+
+  void _showInterstialAd() {
+    if (isInterstitialAdReady) {
+      _interstitialAd.show();
+      _interstitialAd.fullScreenContentCallback =
+          FullScreenContentCallback(onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        setState(() {
+          isInterstitialAdReady = false;
+        });
+        //load new ad
+        InterstitialAd.load(
+          adUnitId: 'ca-app-pub-6014490259749638/4643571214',
+          adLoadCallback: InterstitialAdLoadCallback(
+            onAdLoaded: (ad) {
+              setState(
+                () {
+                  _interstitialAd = ad;
+                  isInterstitialAdReady = true;
+                },
+              );
+            },
+            onAdFailedToLoad: (error) {
+              isInterstitialAdReady = false;
+            },
+          ),
+          request: AdRequest(),
+        );
+      }, onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        setState(() {
+          isInterstitialAdReady = false;
+        });
+      });
+    }
   }
 
   @override
@@ -77,6 +169,13 @@ class _MyAppState extends State<MyApp> {
           ),
         ],
       ),
+      bottomNavigationBar: isBannerAdReady
+          ? SizedBox(
+              height: _bannerAd.size.height.toDouble(),
+              width: _bannerAd.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd),
+            )
+          : SizedBox.shrink(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -193,10 +292,32 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Recent',
                       style: TextStyle(color: Colors.white)),
                 ),
-                const Text("Popular"),
-                const Text("Genre"),
-                const Text("Year"),
-                const Text("A-Z"),
+                GestureDetector(
+                    onTap: () {
+                      _showInterstialAd();
+                      _webBannerAd();
+                    },
+                    child: const Text("Popular")),
+                GestureDetector(
+                    onTap: () {
+                      _showInterstialAd();
+                      BannerAdUnit();
+                    },
+                    child: const Text("Genre")),
+                GestureDetector(
+                    onTap: () {
+                      _showInterstialAd();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BannerAdUnit()),
+                      );
+                    },
+                    child: const Text("Year")),
+                GestureDetector(
+                    onTap: () {
+                      _showInterstialAd();
+                    },
+                    child: const Text("A-Z")),
               ],
             ),
             const Divider(color: Colors.grey),
@@ -259,4 +380,23 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
+}
+
+Widget _webBannerAd() {
+  // ignore: undefined_prefixed_name
+  ui.platformViewRegistry.registerViewFactory(
+      'adViewType',
+      (int viewID) => html.IFrameElement()
+        ..width = '320'
+        ..height = '100'
+        ..src = 'index.html'
+        ..style.border = 'none');
+
+  return SizedBox(
+    height: 100.0,
+    width: 320.0,
+    child: HtmlElementView(
+      viewType: 'adViewType',
+    ),
+  );
 }
